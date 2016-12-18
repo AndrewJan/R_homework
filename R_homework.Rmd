@@ -1,0 +1,392 @@
+---
+title: "276期_R語言新手村_homework"
+author: "詹博喻"
+date: "2016年12月16日"
+output: html_document
+---
+
+簡介
+=========
+#####利用各性別的平均年齡將遺漏的年齡資料補齊，再分析各性別、艙等、年齡之存活率
+
+匯入資料
+=========
+```{r}
+titanic_csv <- read.csv("https://storage.googleapis.com/r_rookies/kaggle_titanic_train.csv")
+```
+
+資料概要
+=========
+#####age這個column有177個遺漏值
+```{r}
+summary(titanic_csv)
+```
+
+前置作業
+=========
+#####titanic_csv有幾個row
+```{r}
+titanic_csv_nrow <- nrow(titanic_csv)
+```
+#####男性和女性數量table
+```{r}
+titanic_csv_sex_table <- table(titanic_csv$Sex)
+```
+#####男性數量
+```{r}
+titanic_male_number <- titanic_csv_sex_table[[2]]
+```
+#####女性數量
+```{r}
+titanic_female_number <- titanic_csv_sex_table[[1]]
+```
+
+無NA的男女人數
+=========
+#####取出無NA的男性數量
+```{r}
+titanic_male_number_no_NA <- 0
+for(i in 1:titanic_csv_nrow){
+  if(is.na(titanic_csv[i,"Age"])){
+    next
+  }else{
+    if(titanic_csv[i,"Sex"] == "male"){
+      titanic_male_number_no_NA <- titanic_male_number_no_NA+1
+    }
+  }
+}
+```
+#####取出無NA的女性數量
+```{r}
+titanic_female_number_no_NA <- 0
+for(i in 1:titanic_csv_nrow){
+  if(is.na(titanic_csv[i,"Age"])){
+    next
+  }else{
+    if(titanic_csv[i,"Sex"] == "female"){
+      titanic_female_number_no_NA <- titanic_female_number_no_NA+1
+    }
+  }
+}
+```
+
+無NA的男女年齡加總
+=========
+#####無NA的男性年齡加總
+```{r}
+male_age_sum <- 0
+for(i in 1:titanic_csv_nrow){
+  if(is.na(titanic_csv[i,"Age"])){
+    next
+  }else{
+    if(titanic_csv[i,"Sex"] == "male"){
+      male_age_sum <- male_age_sum + titanic_csv[i,"Age"]
+    }
+  }
+}
+```
+#####無NA的女性年齡加總
+```{r}
+female_age_sum <- 0
+for(i in 1:titanic_csv_nrow){
+  if(is.na(titanic_csv[i,"Age"])){
+    next
+  }else{
+    if(titanic_csv[i,"Sex"] == "female"){
+      female_age_sum <- female_age_sum + titanic_csv[i,"Age"]
+    }
+  }
+}
+```
+
+無NA的男女年齡平均
+=========
+#####無NA的男性年齡平均
+```{r}
+male_age_average <- 0
+male_age_average <- male_age_sum/titanic_male_number_no_NA
+```
+#####計算出現有資料的男性年齡平均
+```{r}
+male_age_average
+```
+#####無NA的女性年齡平均
+```{r}
+female_age_average <- 0
+female_age_average <- female_age_sum/titanic_male_number_no_NA
+```
+#####計算出現有資料的女性年齡平均
+```{r}
+female_age_average
+```
+
+整理格式
+=========
+#####現有資料的年齡取到小數點第二位，所以將剛剛算出的平均年齡以四捨五入取到小數點第二位
+#####將無NA的男性年齡平均四捨五入取到小數點第二位
+```{r}
+male_age_average_round_2 <- 0
+male_age_average_round_2<- round(male_age_average,2)
+```
+#####將無NA的女性年齡平均四捨五入取到小數點第二位
+```{r}
+female_age_average_round_2 <- 0
+female_age_average_round_2<- round(female_age_average,2)
+```
+
+新的data.frame
+=========
+#####設置新的data.frame
+```{r}
+titanic_csv_1 <- titanic_csv
+```
+#####titanic_csv_1有幾個row
+```{r}
+titanic_csv_1_nrow <- nrow(titanic_csv_1)
+```
+
+將新data.frame的年齡資料補齊
+=========
+#####將男性平均年齡填入titanic_csv_1男性NA
+```{r}
+for(i in 1:titanic_csv_1_nrow){
+  if(is.na(titanic_csv_1[i,"Age"])){
+    if(titanic_csv[i,"Sex"] == "male"){
+      titanic_csv_1[i,"Age"] <- male_age_average_round_2
+    }
+  }
+}
+```
+#####將女性平均年齡填入titanic_csv_1女性NA
+```{r}
+for(i in 1:titanic_csv_1_nrow){
+  if(is.na(titanic_csv_1[i,"Age"])){
+    if(titanic_csv[i,"Sex"] == "female"){
+      titanic_csv_1[i,"Age"] <- female_age_average_round_2
+    }
+  }
+}
+```
+#####檢查是否還有NA
+```{r}
+summary(titanic_csv_1)
+```
+
+男女存活率計算
+=========
+#####計算存活人數
+```{r}
+#男性存活人數變數宣告
+male_survived <- 0
+#女性存活人數變數宣告
+female_survived <- 0
+#統計男女存活人數
+for(i in 1:titanic_csv_1_nrow){
+  if(titanic_csv_1[i,"Survived"]==1){
+    if(titanic_csv_1[i,"Sex"]=="male"){
+      male_survived <- male_survived+1
+    }else{
+      female_survived <- female_survived+1
+    }
+  }
+}
+```
+#####計算存活率
+```{r}
+#計算男性存活率
+male_survival_rate <- male_survived/titanic_male_number
+#計算女性存活率
+female_survival_rate <- female_survived/titanic_male_number
+```
+#####男性存活率百分比表示
+```{r}
+sprintf("%.2f%%",male_survival_rate*100)
+```
+#####女性存活率百分比表示
+```{r}
+sprintf("%.2f%%",female_survival_rate*100)
+```
+
+艙等存活率計算
+=========
+#####計算各艙等人數
+```{r}
+#1等艙人數變數宣告
+pclass_1_number <- 0
+#2等艙人數變數宣告
+pclass_2_number <- 0
+#3等艙人數變數宣告
+pclass_3_number <- 0
+for(i in 1:titanic_csv_1_nrow){
+  if(titanic_csv_1[i,"Pclass"]==1){
+    pclass_1_number <- pclass_1_number+1
+  }else if(titanic_csv_1[i,"Pclass"]==2){
+    pclass_2_number <- pclass_2_number+1
+  }else{
+    pclass_3_number <- pclass_3_number+1
+  }
+}
+```
+#####計算各艙等存活人數
+```{r}
+#1等艙存活人數變數宣告
+pclass_1_survived <- 0
+#2等艙存活人數變數宣告
+pclass_2_survived <- 0
+#3等艙存活人數變數宣告
+pclass_3_survived <- 0
+for(i in 1:titanic_csv_1_nrow){
+  if(titanic_csv_1[i,"Survived"]==1){
+    if(titanic_csv_1[i,"Pclass"]==1){
+      pclass_1_survived <- pclass_1_survived+1
+    }else if(titanic_csv_1[i,"Pclass"]==2){
+      pclass_2_survived <- pclass_2_survived+1
+    }else{
+      pclass_3_survived <- pclass_3_survived+1
+    }
+  }
+}
+```
+#####計算各艙等存活率
+```{r}
+#計算1等艙存活率
+pclass_1_survival_rate <- pclass_1_survived/pclass_1_number
+#計算2等艙存活率
+pclass_2_survival_rate <- pclass_2_survived/pclass_2_number
+#計算3等艙存活率
+pclass_3_survival_rate <- pclass_3_survived/pclass_3_number
+```
+#####1等艙存活率百分比表示
+```{r}
+sprintf("%.2f%%",pclass_1_survival_rate*100)
+```
+#####2等艙存活率百分比表示
+```{r}
+sprintf("%.2f%%",pclass_2_survival_rate*100)
+```
+#####3等艙存活率百分比表示
+```{r}
+sprintf("%.2f%%",pclass_3_survival_rate*100)
+```
+
+各年齡存活率計算
+=========
+#####計算各年齡層人數
+```{r}
+#0~20歲人數變數宣告
+age_0to20_number <- 0
+#20~40歲人數變數宣告
+age_20to40_number <- 0
+#40~60歲人數變數宣告
+age_40to60_number <- 0
+#60~歲人數變數宣告
+age_60up_number <- 0
+for(i in 1:titanic_csv_1_nrow){
+  if(titanic_csv_1[i,"Age"]<=20){
+    age_0to20_number <- age_0to20_number+1
+  }else if(titanic_csv_1[i,"Age"]>20&titanic_csv_1[i,"Age"]<=40){
+    age_20to40_number <- age_20to40_number+1
+  }else if(titanic_csv_1[i,"Age"]>40&titanic_csv_1[i,"Age"]<=60){
+    age_40to60_number <- age_40to60_number+1
+  }else{
+    age_60up_number <- age_60up_number+1
+  }
+}
+```
+#####計算各年齡層存活人數
+```{r}
+#0~20歲人數變數宣告
+age_0to20_survived <- 0
+#20~40歲人數變數宣告
+age_20to40_survived <- 0
+#40~60歲人數變數宣告
+age_40to60_survived <- 0
+#60~歲人數變數宣告
+age_60up_survived <- 0
+for(i in 1:titanic_csv_1_nrow){
+  if(titanic_csv_1[i,"Survived"]==1){
+    if(titanic_csv_1[i,"Age"]<=20){
+      age_0to20_survived <- age_0to20_survived+1
+    }else if(titanic_csv_1[i,"Age"]>20&titanic_csv_1[i,"Age"]<=40){
+      age_20to40_survived <- age_20to40_survived+1
+    }else if(titanic_csv_1[i,"Age"]>40&titanic_csv_1[i,"Age"]<=60){
+      age_40to60_survived <- age_40to60_survived+1
+    }else{
+      age_60up_survived <- age_60up_survived+1
+    }
+  }
+}
+```
+#####計算各艙等存活率
+```{r}
+#計算0~20歲存活率
+age_0to20_survival_rate <- age_0to20_survived/age_0to20_number
+#計算20~40歲存活率
+age_20to40_survival_rate <- age_20to40_survived/age_20to40_number
+#計算40~60歲存活率
+age_40to60_survival_rate <- age_40to60_survived/age_40to60_number
+#計算60~歲存活率
+age_60up_survival_rate <- age_60up_survived/age_60up_number
+```
+#####0~20歲存活率百分比表示
+```{r}
+sprintf("%.2f%%",age_0to20_survival_rate*100)
+```
+#####20~40歲存活率百分比表示
+```{r}
+sprintf("%.2f%%",age_20to40_survival_rate*100)
+```
+#####40~60歲存活率百分比表示
+```{r}
+sprintf("%.2f%%",age_40to60_survival_rate*100)
+```
+#####60~歲存活率百分比表示
+```{r}
+sprintf("%.2f%%",age_60up_survival_rate*100)
+```
+
+資料視覺化
+=========
+#####data.frame準備
+```{r}
+#準備library
+library(ggplot2)
+library(plotly)
+#性別
+sex <- c("male","female")
+sex_survial_rate <- c(sprintf("%.2f%%",male_survival_rate*100),sprintf("%.2f%%",female_survival_rate*100))
+sex_survial_rate_df <- data.frame(sex,sex_survial_rate)
+#艙等
+pclass <- c("pclass_1","pclass_2","pclass_3")
+pclass_survial_rate <- c(sprintf("%.2f%%",pclass_1_survival_rate*100),sprintf("%.2f%%",pclass_2_survival_rate*100),sprintf("%.2f%%",pclass_3_survival_rate*100))
+pclass_survial_rate_df <- data.frame(pclass,pclass_survial_rate)
+#年齡
+age <- c("0~20歲","20~40歲","40~60歲","60歲以上")
+age_survial_rate <- c(sprintf("%.2f%%",age_0to20_survival_rate*100),sprintf("%.2f%%",age_20to40_survival_rate*100),sprintf("%.2f%%",age_40to60_survival_rate*100),sprintf("%.2f%%",age_60up_survival_rate*100))
+age_survial_rate_df <- data.frame(age,age_survial_rate)
+```
+
+#####各性別存活機率長條圖
+```{r}
+ggplot_bar_sex_survial_rate <- ggplot(sex_survial_rate_df, aes(x = sex, y = sex_survial_rate, fill = sex)) + geom_bar(stat = "identity") + xlab("性別") + ylab("存活率")
+ggplotly_ggplot_bar_sex_survial_rate<- ggplotly(ggplot_bar_sex_survial_rate)
+ggplotly_ggplot_bar_sex_survial_rate
+```
+
+#####各艙等存活機率長條圖
+```{r}
+ggplot_bar_pclass_survial_rate <- ggplot(pclass_survial_rate_df, aes(x = pclass, y = pclass_survial_rate, fill = pclass)) + geom_bar(stat = "identity") + xlab("艙等") + ylab("存活率")
+ggplotly_ggplot_bar_pclass_survial_rate<- ggplotly(ggplot_bar_pclass_survial_rate)
+ggplotly_ggplot_bar_pclass_survial_rate
+```
+
+#####各年齡層存活機率長條圖
+```{r}
+ggplot_bar_age_survial_rate <- ggplot(age_survial_rate_df, aes(x = age, y = age_survial_rate, fill = age)) + geom_bar(stat = "identity") + xlab("年齡層") + ylab("存活率")
+ggplotly_ggplot_bar_age_survial_rate<- ggplotly(ggplot_bar_age_survial_rate)
+ggplotly_ggplot_bar_age_survial_rate
+```
+
+結論
+=========
+有錢的年輕女性存活率最高
